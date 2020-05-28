@@ -1,3 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Location</string>
+
+    <string name="info_default">(unavailable)</string>
+    <string name="info_format">Latitude: %1$f\nLongitude: %2$f</string>
+    <string name="toast_requires_permission">This application requires permission %s</string>
 </resources>
