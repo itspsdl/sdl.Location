@@ -4,26 +4,23 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
-public class MainActivity extends AppCompatActivity implements
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = MainActivity.class.getSimpleName();
 
@@ -36,7 +33,6 @@ public class MainActivity extends AppCompatActivity implements
 
     private TextView infoView;
 
-    private GoogleApiClient apiClient;
     private FusedLocationProviderClient locationClient;
     private LocationRequest request;
     private LocationCallback callback;
@@ -49,71 +45,34 @@ public class MainActivity extends AppCompatActivity implements
 
         infoView = findViewById(R.id.info_view);
 
-        apiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-
         locationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        request = new LocationRequest();
+        request = LocationRequest.create();
         request.setInterval(10000);
         request.setFastestInterval(5000);
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         callback = new LocationCallback() {
             @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult != null) {
-                    Location location = locationResult.getLastLocation();
-                    double lat = location.getLatitude();
-                    double lng = location.getLongitude();
-                    infoView.setText(getString(R.string.info_format, lat, lng));
-                }
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                Location location = locationResult.getLastLocation();
+                double lat = location.getLatitude();
+                double lng = location.getLongitude();
+                infoView.setText(getString(R.string.info_format, lat, lng));
             }
         };
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.d(TAG, "onStart");
-        apiClient.connect();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop");
-        apiClient.disconnect();
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        Log.d(TAG, "onConnected");
         startLocationUpdate(true);
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        Log.d(TAG, "onConnectionSuspented");
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.d(TAG, "onConnectionFailed");
     }
 
     private void startLocationUpdate(boolean reqPermission) {
         if (checkPermission(reqPermission)) {
-            locationClient.requestLocationUpdates(request, callback, null);
+            locationClient.requestLocationUpdates(request, callback, Looper.getMainLooper());
         }
     }
 
